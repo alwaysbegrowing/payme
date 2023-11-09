@@ -1,25 +1,33 @@
 # Using Miniconda as a base image
-FROM continuumio/miniconda3
+FROM continuumio/miniconda3:latest
 
 # Set the working directory in the container
 WORKDIR /home/projects/payme
 
+# Update conda itself to make sure we have the latest version
+RUN conda update -n base -c defaults conda
+
+# Create a new conda environment and install Python 3.8
+# Combining these steps can reduce the number of layers and use cache more efficiently
+RUN conda create -y --name payme_env python=3.8
+
+# Activate the conda environment by setting the PATH environment variable
+ENV PATH /opt/conda/envs/payme_env/bin:$PATH
+
+# Install necessary system dependencies for compiling Python packages
+RUN apt-get update && apt-get install -y build-essential
+
+# Copy just the requirements.txt first, to cache the dependencies installation
+# unless requirements.txt changes
+COPY requirements.txt /home/projects/payme/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
 # Copy the current directory contents into the container at /home/projects/payme
+# This is done after installing dependencies to avoid invalidating the cache when other files change
 COPY . /home/projects/payme
 
-# Create a new conda environment
-RUN conda create -y --name payme_env
-
-# Install Python 3.8 in the new environment
-RUN conda install -y -c conda-forge python=3.8
-
-# Activate the conda environment and install the Python dependencies
-# Note: The --no-input option for pip install does not exist. It should be --no-input for pip and -y for conda.
-RUN echo "source activate payme_env" > ~/.bashrc
-ENV PATH /opt/conda/envs/payme_env/bin:$PATH
-RUN pip install -r requirements.txt
-
 # Make start.sh executable
+# This can also be done outside the Dockerfile to avoid this layer if start.sh is executable in the source already
 RUN chmod +x start.sh
 
 # Inform Docker that the container is listening on port 8501
