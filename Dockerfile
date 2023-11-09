@@ -30,7 +30,13 @@ SHELL ["conda", "run", "-n", "payme_env", "/bin/bash", "-c"]
 
 # Install dependencies from requirements.txt using mamba for faster installation
 COPY requirements.txt .
-RUN mamba install --file requirements.txt --yes
+
+# Install dependencies from requirements.txt using mamba for faster installation
+# and pip for packages not available in Conda channels
+COPY requirements.txt .
+RUN mamba install --file requirements.txt --yes \
+    || { grep -E 'python_magic|streamlit_bokeh_events' requirements.txt > pip_requirements.txt \
+    && pip install --no-cache-dir -r pip_requirements.txt; }
 
 # Make start.sh executable
 RUN chmod +x start.sh
