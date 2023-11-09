@@ -26,12 +26,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # This is done after installing dependencies to avoid invalidating the cache when other files change
 COPY . /home/projects/payme
 
-# Make start.sh executable
-# This can also be done outside the Dockerfile to avoid this layer if start.sh is executable in the source already
-RUN chmod +x start.sh
+# Make start_me.sh executable
+# This can also be done outside the Dockerfile to avoid this layer if start_me.sh is executable in the source already
+RUN chmod +x start_me.sh
 
 # Inform Docker that the container is listening on port 8501
 EXPOSE 8501
 
-# Run start.sh when the container launches
-CMD ["./start.sh"]
+# Run start_me.sh when the container launches
+CMD ["./start_me.sh"]
