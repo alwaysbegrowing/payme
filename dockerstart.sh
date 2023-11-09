@@ -12,6 +12,8 @@ if [ $(docker ps -q -f name=^/${CONTAINER_NAME}$) ]; then
   echo "Container removed."
 fi
 
+docker rm "${CONTAINER_NAME}"
+
 # Build the Docker image
 echo "Building Docker image..."
 docker build -t "${IMAGE_NAME}" .
