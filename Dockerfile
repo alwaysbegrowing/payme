@@ -34,4 +34,4 @@ RUN chmod +x start_me.sh
 EXPOSE 8501
 
 # Run start_me.sh when the container launches
-CMD ["/bin/bash", "./start.sh"]
+CMD ["/bin/bash", "./start_me.sh"]
