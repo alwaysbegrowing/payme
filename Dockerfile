@@ -7,21 +7,20 @@ WORKDIR /home/projects/payme
 # Copy the current directory contents into the container at /home/projects/payme
 COPY . /home/projects/payme
 
-# Install Miniconda
-RUN apt-get update -q && apt-get install -y wget
+# Install required system packages
+RUN apt-get update -q && apt-get install -y wget curl build-essential
 
-RUN wget --progress=dot:giga https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh
-
-RUN bash Miniconda3-latest-Linux-aarch64.sh -b -u -p /opt/conda
-RUN rm Miniconda3-latest-Linux-aarch64.sh
+# Download and install Miniforge
+RUN curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" && \
+    bash Miniforge3-$(uname)-$(uname -m).sh -b -u -p /opt/conda && \
+    rm Miniforge3-$(uname)-$(uname -m).sh
 
 # Add Conda to PATH
 ENV PATH /opt/conda/bin:$PATH
 
-RUN apt-get update -q && apt-get install -y build-essential
-
-# Update Conda
-RUN conda update -n base -c defaults conda
+# Update Conda and install Mamba, a fast, drop-in replacement for conda
+RUN conda update -n base -c defaults conda && \
+    conda install mamba -n base -c conda-forge
 
 # Create a new conda environment with Python 3.8
 RUN conda create -y --name payme_env python=3.8
@@ -31,7 +30,7 @@ SHELL ["conda", "run", "-n", "payme_env", "/bin/bash", "-c"]
 
 # Install dependencies from requirements.txt
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN mamba install --file requirements.txt --yes
 
 # Make start.sh executable
 RUN chmod +x start.sh
