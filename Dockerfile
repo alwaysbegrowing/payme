@@ -7,8 +7,8 @@ WORKDIR /home/projects/payme
 # Copy the current directory contents into the container at /home/projects/payme
 COPY . /home/projects/payme
 
-# Install required system packages
-RUN apt-get update -q && apt-get install -y wget curl build-essential
+# Install required system packages including libarchive
+RUN apt-get update -q && apt-get install -y wget curl build-essential libarchive13
 
 # Download and install Miniforge
 RUN curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" && \
@@ -28,7 +28,7 @@ RUN conda create -y --name payme_env python=3.8
 # Activate the conda environment and install the Python dependencies
 SHELL ["conda", "run", "-n", "payme_env", "/bin/bash", "-c"]
 
-# Install dependencies from requirements.txt
+# Install dependencies from requirements.txt using mamba for faster installation
 COPY requirements.txt .
 RUN mamba install --file requirements.txt --yes
 
