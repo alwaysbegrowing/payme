@@ -8,15 +8,17 @@ WORKDIR /home/projects/payme
 COPY . /home/projects/payme
 
 # Install Miniconda
-RUN apt-get update && apt-get install -y wget && \
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh && \
-    sh Miniconda3-latest-Linux-aarch64.sh -b -p /opt/conda && \
-    rm Miniconda3-latest-Linux-aarch64.sh
+RUN apt-get update -q && apt-get install -y wget
+
+RUN wget --progress=dot:giga https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh
+
+RUN bash Miniconda3-latest-Linux-aarch64.sh -b -u -p /opt/conda
+RUN rm Miniconda3-latest-Linux-aarch64.sh
 
 # Add Conda to PATH
 ENV PATH /opt/conda/bin:$PATH
 
-RUN apt-get update && apt-get install -y build-essential
+RUN apt-get update -q && apt-get install -y build-essential
 
 # Update Conda
 RUN conda update -n base -c defaults conda
