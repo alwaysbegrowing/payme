@@ -4,9 +4,6 @@ FROM continuumio/miniconda3:latest
 # Set the working directory in the container
 WORKDIR /home/projects/payme
 
-# Update conda itself to make sure we have the latest version
-RUN conda update -n base -c defaults conda
-
 # Create a new conda environment and install Python 3.8
 # Combining these steps can reduce the number of layers and use cache more efficiently
 RUN conda create -y --name payme_env python=3.8
