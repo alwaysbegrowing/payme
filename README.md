@@ -1,29 +1,39 @@
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/pomkos/payme/main/payme.py)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/pomkos/payme/main/main.py)
 
 # Table of Contents
 
-1. [Description](#payme)
-2. [Screenshots](#screenshots)
-    1. [Delivery App Mode](#delivery-app-mode-default)
-    2. [Manual Mode](#manual-mode)
-    3. [What Happened](#what-happened)
-    4. [Output](#output)
-    5. [Venmo Preview](#venmo-preview)
-3. [How-Tos](#how-tos)
-    1. [Run](#run)
-    2. [Host](#host)
-4. [Outline](#outline)
-    1. [Code Structure](#code)
-    2. [Databases](#databases)
+- [Table of Contents](#table-of-contents)
+- [PayMe](#payme)
+- [Screenshots](#screenshots)
+  - [Delivery App Mode (default)](#delivery-app-mode-default)
+  - [Manual Mode](#manual-mode)
+  - [What Happened](#what-happened)
+  - [Output](#output)
+  - [Venmo Preview](#venmo-preview)
+- [How tos](#how-tos)
+  - [Run](#run)
+  - [Host](#host)
+- [Outline](#outline)
+  - [Code](#code)
+  - [Databases](#databases)
+    - [Food.db](#fooddb)
+      - [receipt table](#receipt-table)
+      - [food table](#food-table)
+    - [Currency.db](#currencydb)
+      - [country\_currency table](#country_currency-table)
+      - [currency\_rates table](#currency_rates-table)
+    - [Names.db](#namesdb)
+      - [names table](#names-table)
 
 # PayMe
+
 Just a simple repo to calculate how much to request from people after a night out
 
 # Screenshots
 
 ## Delivery App Mode (default)
 
- <img src="https://github.com/pomkos/payme/blob/main/images/default_view.png" width="620"> 
+ <img src="https://github.com/pomkos/payme/blob/main/images/default_view.png" width="620">
 
 ## Manual Mode
 
@@ -42,9 +52,11 @@ Just a simple repo to calculate how much to request from people after a night ou
 <img src="https://github.com/pomkos/payme/blob/main/images/venmo_preview.png" width="310">
 
 # How tos
+
 ## Run
 
 1. Clone the repository:
+
 ```
 git clone https://github.com/pomkos/payme
 cd payme
@@ -63,10 +75,13 @@ conda activate pay_env
 conda install python=3.8
 pip install -r requirements.txt
 ```
+
 3. Start the application:
+
 ```
-streamlit run payme.py
+streamlit run apps/main.py
 ```
+
 5. Access the application at `localhost:8501`
 
 ## Host
@@ -94,6 +109,7 @@ The codebase is organized as such:
 ```
 payme
   |-- apps
+      |-- main.py           # the brains behind it all, redirects user provided information to the appropriate scripts in apps folder
       |-- calculator.py     # called by all scripts for the actual calculations
       |-- db_tool.py        # includes helper class to connect to sqlite db and extract currency info
       |-- doordash.py       # specific to doordash receipts, extracts all info
@@ -107,7 +123,6 @@ payme
   |-- images
   |-- .gitignore
   |-- README.md
-  |-- payme.py              # the brains behind it all, redirects user provided information to the appropriate scripts in apps folder
   |-- requirements.txt
 ```
 
@@ -121,7 +136,7 @@ Stores information from the complex receipt receiver on payme
 
 | item                            | price | amount | name                 | people                                | date       |
 | ------------------------------- | ----- | ------ | -------------------- | ------------------------------------- | ---------- |
-| Buck to the Future (1.0 bought) | 14.0  | 1.0    | Roosevelt Room_05-21 | Peter, Matt, Steve, Julie, Aron, Kyle | 2021-05-21 | 
+| Buck to the Future (1.0 bought) | 14.0  | 1.0    | Roosevelt Room_05-21 | Peter, Matt, Steve, Julie, Aron, Kyle | 2021-05-21 |
 
 #### food table
 
@@ -129,7 +144,7 @@ Stores information from the claim your meal section on payme. This is what is sh
 
 | name  | food                                | price | amount | total_item_price | label              |
 | ----- | ----------------------------------- | ----- | ------ | ---------------- | ------------------ |
-| Peter | [dessert] medovik cake (1.0 bought) | 8.00  | 1.0    | 8.00             | Russia House_05-02 | 
+| Peter | [dessert] medovik cake (1.0 bought) | 8.00  | 1.0    | 8.00             | Russia House_05-02 |
 
 ### Currency.db
 
@@ -137,14 +152,14 @@ Stores information from the claim your meal section on payme. This is what is sh
 
 | country        | currency       | code |
 | -------------- | -------------- | ---- |
-| United Kingdom | Pound Sterling | GBP  | 
-
+| United Kingdom | Pound Sterling | GBP  |
 
 #### currency_rates table
 
 | rate     | country        | currency       | code | date_updated |
 | -------- | -------------- | -------------- | ---- | ------------ |
-| 0.729266 | United Kingdom | Pound Sterling | GBP  | 2021-03-25   | 
+| 0.729266 | United Kingdom | Pound Sterling | GBP  | 2021-03-25   |
+
 ### Names.db
 
 #### names table

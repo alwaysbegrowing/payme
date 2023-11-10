@@ -20,6 +20,6 @@ docker build -t "${IMAGE_NAME}" .
 
 # Run the container in detached mode
 echo "Running container in detached mode..."
-docker run -d --name "${CONTAINER_NAME}" "${IMAGE_NAME}"
+docker run -d -p 8501:8501 --name "${CONTAINER_NAME}" "${IMAGE_NAME}"
 
 echo "Container ${CONTAINER_NAME} is up and running."
