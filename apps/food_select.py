@@ -2,13 +2,16 @@
 Starts a streamlit script to allow people to select which foods they bought. For use with payme.
 """
 
-import streamlit as st
+import datetime as dt
+
 import numpy as np
 import pandas as pd
 import sqlalchemy as sq
-import datetime as dt
+import streamlit as st
 
-engine = sq.create_engine("sqlite:///data/food.db", connect_args={"check_same_thread":False})
+engine = sq.create_engine(
+    "sqlite:///data/food.db", connect_args={"check_same_thread": False}
+)
 cnx = engine.connect()
 
 ###################
@@ -27,7 +30,7 @@ class labelFood:
             st.write(
                 """
             __Initial Input:__
-            
+
             1. Select receipt
             1. Select mode. Remove mode allows you to undo prior claims
             1. Choose your name
@@ -35,17 +38,17 @@ class labelFood:
             1. Add how many you ordered. If order was split with three people, just add your portion (ex: if 33%, enter 0.33)
             1. Review selection, hit `Confirm and Submit`
             1. Repeat for each order
-            
+
             __Once all Meals are Claimed:__
-            
+
             A message will show and below it in a codebox a summary of each person's orders.
-            
+
             1. Copy the content of codebox
             1. In the sidebar click `Get venmo links`
             1. Paste into `Add name and food prices*`
             1. Click out of the box
             1. Scroll down, click copy to get your venmo links
-            
+
             """
             )
         labels = data["name"].unique()
@@ -56,7 +59,7 @@ class labelFood:
         ph_show = st.empty()
 
         # dictionary where keys are the food, values are a list of [price, num_ordered]
-        data2 = data[data["name"] == selected] # filter to selected receipt
+        data2 = data[data["name"] == selected]  # filter to selected receipt
         food_dict, names_list = self.food_df_to_dict(data2)
         try:
             df_saved = pd.read_sql("food", cnx)
@@ -74,8 +77,8 @@ class labelFood:
             )
         show = ph_show.checkbox("Show me everyone's submission")
         if show:
-            show_claims = df_saved[df_saved['label']==selected]
-            show_claims = show_claims.sort_values(['name','food'])
+            show_claims = df_saved[df_saved["label"] == selected]
+            show_claims = show_claims.sort_values(["name", "food"])
             st.table(show_claims)
             st.stop()
         names = self.name_chooser(df_saved, names_list)
@@ -83,25 +86,31 @@ class labelFood:
         if not meals:
             ph_show.empty()
             # if no meals in the list, then we're done. Just show the df.
-            st.success("All meals have been claimed! Copy paste the below into `Get venmo links` to get venmo links.")
-            results = df_saved[df_saved['label'] == selected]
+            st.success(
+                "All meals have been claimed! Copy paste the below into `Get venmo links` to get venmo links."
+            )
+            results = df_saved[df_saved["label"] == selected]
             self.results_formatter(results, data2)
             st.stop()
 
-        mode = st.selectbox("Choose mode", options=['Claim', 'Remove'])
+        mode = st.selectbox("Choose mode", options=["Claim", "Remove"])
         name = name = st.selectbox("Name", options=names)
-        order, amount = self.info_gather(meals, claimed_meals, df_saved, food_dict, selected, mode)
+        order, amount = self.info_gather(
+            meals, claimed_meals, df_saved, food_dict, selected, mode
+        )
         self.ph_info = st.empty()
         self.ph_table = st.empty()
 
         if not amount or not order or not name:
             self.ph_info.info(
-                "Step 1. Select the meal you ordered or shared, and write the amount of each. If shared, use fractions. " + 
-                "Optionally, select meal claims you wish to remove."
+                "Step 1. Select the meal you ordered or shared, and write the amount of each. If shared, use fractions. "
+                + "Optionally, select meal claims you wish to remove."
             )
             with self.ph_table.container():
                 st.write("__Your Submissions__")
-                user_table = df_saved[(df_saved['label']==selected) & (df_saved['name']==name)]
+                user_table = df_saved[
+                    (df_saved["label"] == selected) & (df_saved["name"] == name)
+                ]
                 st.table(user_table)
             st.stop()
 
@@ -126,8 +135,11 @@ class labelFood:
         my_dict = {}
         new_df = dataframe.groupby("item").sum()
         for item in new_df.index:
-            my_dict[item.lower()] = [new_df.loc[item, "price"], new_df.loc[item, "amount"]]
-        names_list_dirty = dataframe['people'].unique()[0].split(',')
+            my_dict[item.lower()] = [
+                new_df.loc[item, "price"],
+                new_df.loc[item, "amount"],
+            ]
+        names_list_dirty = dataframe["people"].unique()[0].split(",")
         names_list = [name.strip() for name in names_list_dirty]
         return my_dict, names_list
 
@@ -152,13 +164,13 @@ class labelFood:
         all_meals = [x.capitalize() for x in food_dict.keys()]
         meals = all_meals.copy()
         claimed_meals = []
-        claimed = {} # first item is claims, second orders
+        claimed = {}  # first item is claims, second orders
         for meal in all_meals:
             if meal in df_saved["food"].unique():
                 meal_df = df_saved[df_saved["food"] == meal]  # isolate df to just meal
                 amount_claimed = meal_df["amount"].sum()  # num times it was bought
                 amount_bought = food_dict[meal.lower()][1]
-                
+
                 if amount_claimed >= amount_bought:
                     # if we reached how many times meal was bought, remove
                     # meal from available options
@@ -178,61 +190,80 @@ class labelFood:
         meals.sort()
         claimed_meals.sort()
         return meals, claimed_meals
-    
+
     def food_formatter(self, meal_title):
-        '''
+        """
         Formats meal names so it includes amount left to claim by user.
-        '''
+        """
         claimed = self.claimed
 
         meal, *rest = meal_title.split("(")
         meal = meal.strip()
         claims = claimed[meal_title][0]
         ordered = claimed[meal_title][1]
-        
-        show = meal + f' ({claims}/{ordered} claimed)'
+
+        show = meal + f" ({claims}/{ordered} claimed)"
         return show
 
-    def info_gather(self, meals, claimed_meals, df_saved, food_dict, receipt_name, mode):
+    def info_gather(
+        self, meals, claimed_meals, df_saved, food_dict, receipt_name, mode
+    ):
         """
         Gathers info from user regarding claims
         """
         colo, cola = st.columns(2)
         with colo:
-            if (mode == 'Claim'):
-                order = st.selectbox("Select an order", options=meals, format_func=self.food_formatter)
+            if mode == "Claim":
+                order = st.selectbox(
+                    "Select an order", options=meals, format_func=self.food_formatter
+                )
             else:
-                order = st.selectbox("Select an order", options=claimed_meals, format_func=self.food_formatter)
-        receipt_df = df_saved[(df_saved['label'] == receipt_name)]
-        receipt_grpd = receipt_df.groupby('food').sum()
+                order = st.selectbox(
+                    "Select an order",
+                    options=claimed_meals,
+                    format_func=self.food_formatter,
+                )
+        receipt_df = df_saved[(df_saved["label"] == receipt_name)]
+        receipt_grpd = receipt_df.groupby("food").sum()
 
         try:
-            amt_order_recorded = receipt_grpd.loc[order,'amount']
+            amt_order_recorded = receipt_grpd.loc[order, "amount"]
         except:
             amt_order_recorded = 0.0
-        
+
         with cola:
-            if (mode == 'Claim'):
+            if mode == "Claim":
                 amount = self.left_to_claim_column(food_dict, order, amt_order_recorded)
             else:
                 amount = self.left_to_remove_column(amt_order_recorded)
-
 
         return order, amount
 
     def left_to_claim_column(self, food_dict, order, amt_order_recorded):
         num_item = float(food_dict[order.lower()][1])
-        left_to_claim = round(num_item - amt_order_recorded,2)
-        amount = round(st.number_input(
-            f"How many? (Left to claim: {left_to_claim})", step=1.0, max_value=left_to_claim, min_value=0.0
-        ),2)
+        left_to_claim = round(num_item - amt_order_recorded, 2)
+        amount = round(
+            st.number_input(
+                f"How many? (Left to claim: {left_to_claim})",
+                step=1.0,
+                max_value=left_to_claim,
+                min_value=0.0,
+            ),
+            2,
+        )
 
         return amount
 
     def left_to_remove_column(self, amt_order_recorded):
-        amount = round(st.number_input(
-            f"How many? (Left to remove: {amt_order_recorded})", step=1.0, max_value=amt_order_recorded, min_value=0.0
-        ),2)
+        amount = round(
+            st.number_input(
+                f"How many? (Left to remove: {amt_order_recorded})",
+                step=1.0,
+                max_value=amt_order_recorded,
+                min_value=0.0,
+            ),
+            2,
+        )
 
         return -amount
 
@@ -254,7 +285,9 @@ class labelFood:
             }
         )
 
-        receipt_df["total_item_price"] = round(receipt_df["amount"] * receipt_df["price"],2)
+        receipt_df["total_item_price"] = round(
+            receipt_df["amount"] * receipt_df["price"], 2
+        )
 
         # calculate and present user's taxes, tips, subtotal, total
         user_subtotal = sum(receipt_df["total_item_price"])
@@ -291,7 +324,7 @@ class labelFood:
 
         return user_total, subtotal, tip, tip_perc, sales_tax_perc
 
-    def save_to_db(self, receipt_df, df_saved, receipt_name,name):
+    def save_to_db(self, receipt_df, df_saved, receipt_name, name):
         """
         Allows user to submit and save to db
         """
@@ -303,38 +336,38 @@ class labelFood:
 
         except:
             st.error("Couldn't save to db, tell Pete")
-            
+
     def results_formatter(self, results, receipt_df):
-        '''
+        """
         Formats the results so they can be directly copied into payme manual mode.
-        '''
+        """
         results_dict = {}
-        receipt_df = receipt_df.set_index('item')
+        receipt_df = receipt_df.set_index("item")
         # gather info to format
-        
+
         for i, row in results.iterrows():
-            name = row['name']
-            total_item_price = row['total_item_price']
-            
+            name = row["name"]
+            total_item_price = row["total_item_price"]
+
             if name in results_dict.keys():
                 results_dict[name].append(total_item_price)
             else:
                 results_dict[name] = [total_item_price]
-        results_dict['---DO NOT DELETE BELOW---'] = []
-        results_dict['%%tax'] = [receipt_df.loc['tax','price']]
-        results_dict['%%tip'] = [receipt_df.loc['tip','price']]
-        results_dict['%%fees'] = [receipt_df.loc['fees','price']]
-        results_dict['%%description'] = [self.format_labels(receipt_df['name'].iloc[0])]
-        
-        results_str = ''
+        results_dict["---DO NOT DELETE BELOW---"] = []
+        results_dict["%%tax"] = [receipt_df.loc["tax", "price"]]
+        results_dict["%%tip"] = [receipt_df.loc["tip", "price"]]
+        results_dict["%%fees"] = [receipt_df.loc["fees", "price"]]
+        results_dict["%%description"] = [self.format_labels(receipt_df["name"].iloc[0])]
+
+        results_str = ""
         for key in results_dict.keys():
-            line = f'{key}:'
+            line = f"{key}:"
             for price in results_dict[key]:
-                line += f' {price}'
-            results_str += f'''
-{line}'''
+                line += f" {price}"
+            results_str += f"""
+{line}"""
         st.code(results_str)
-        
+
         with st.expander("See everyone's claimed meals"):
             st.table(results)
 
@@ -383,7 +416,7 @@ class receiptReceiver:
         Extracts costs for each meal
         """
         r_list = receipt.split("\n")
-        
+
         food_lst = [food.split(":")[0].strip() for food in r_list]
         money_lst = [food.split(":")[1].strip() for food in r_list]
         price_lst = [float(food.split(",")[0].strip()) for food in money_lst]
@@ -399,7 +432,7 @@ class receiptReceiver:
             {"item": new_food_lst, "price": price_lst, "amount": amount_lst}
         )
         st.table(df)
-        df = df.sort_values('item')
+        df = df.sort_values("item")
         return df
 
     def add_fees(self, dataframe):
@@ -432,13 +465,15 @@ class receiptReceiver:
         )
 
         return dataframe
-    
+
     def add_users(self):
-        '''
+        """
         Asks payer to add everyone who was in the group during meal time
-        '''
+        """
         st.info("Step 3. Add everyone (including yourself!) who is sharing the costs.")
-        everyone_str = st.text_input("Add names, separated by a comma (Ex: Russ, Fuss, Muss)")
+        everyone_str = st.text_input(
+            "Add names, separated by a comma (Ex: Russ, Fuss, Muss)"
+        )
         if not everyone_str:
             st.stop()
         return everyone_str
@@ -448,12 +483,14 @@ class receiptReceiver:
         Saves user created info
         """
         import datetime as dt
-        
+
         st.info("Step 4. Tag, review, and save!")
         label = st.text_input("Give a name to the receipt")
-        label = label + "_" + str(dt.datetime.now().date())[5:]        
+        label = label + "_" + str(dt.datetime.now().date())[5:]
         dataframe["name"] = label
-        dataframe['people'] = str(names_lst) # sqlite does not support storing lists in cells
+        dataframe["people"] = str(
+            names_lst
+        )  # sqlite does not support storing lists in cells
         st.table(dataframe)
         if not st.button("Save to Database"):
             st.stop()
@@ -462,12 +499,12 @@ class receiptReceiver:
 
         try:
             old_df = pd.read_sql("receipt", con=cnx)
-            if label in old_df['name'].unique():
+            if label in old_df["name"].unique():
                 label2 = label + "_new"
-                dataframe['name'] = label2
+                dataframe["name"] = label2
             dataframe = dataframe.append(old_df)
             dataframe.to_sql("receipt", con=cnx, index=False, if_exists="replace")
         except:
             dataframe.to_sql("receipt", con=cnx, index=False, if_exists="replace")
-            
+
         st.success("Step 5. Saved! Let everyone know it's time to claim their meals!")

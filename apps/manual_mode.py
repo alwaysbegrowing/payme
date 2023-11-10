@@ -1,7 +1,7 @@
 # Web GUI for manual input option
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
 
 def name_input():
@@ -24,8 +24,9 @@ def name_finder(receipt):
     """
     First attempt at automatically finding the names of people in receipts
     """
-    from apps import db_tool as db
     import re
+
+    from apps import db_tool as db
 
     all_names = db.name_loader()
     receipt = receipt.replace(",", " ").lower()
@@ -95,7 +96,6 @@ def manual_mode():
     receipt_input = st.text_area(label="Add name and food prices*", height=150)
 
     if "---DO NOT DELETE BELOW---:" in receipt_input:
-
         # then the meals were claimed. This section is here to avoid
         # user having to put in tax/tip/fees twice
         import re
