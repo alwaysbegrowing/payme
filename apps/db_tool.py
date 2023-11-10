@@ -1,6 +1,7 @@
 # Everything you need to mess with the dataset
 
 import pandas as pd
+import requests
 import sqlalchemy as sq
 import streamlit as st
 
@@ -32,15 +33,19 @@ class getCurrency:
         """
         Scrapes and returns latest currency info
         """
-        import pandas as pd
-        import requests
+        url = "http://api.exchangeratesapi.io/v1/latest"
+        params = {
+            "access_key": "39bb68026251e7001df58311ef680d43",
+            "symbols": "USD,AUD,CAD,PLN,MXN",
+            "format": 1,
+        }
 
-        api = "https://api.ratesapi.io/api/latest?base=USD"
-        response = requests.get(api)
+        response = requests.get(url, params=params)
         rates = response.json()
-        rates_df = pd.json_normalize(rates).T.reset_index()
-        rates_df.columns = ["currency", "rate"]
-        rates_df["currency"] = rates_df["currency"].str.replace("rates.", "")
+        print(rates)
+
+        rates_df = pd.DataFrame(rates["rates"].items(), columns=["currency", "rate"])
+        print(rates_df)
         self.rates_df = rates_df
 
     def rate_ctry_merge(self):

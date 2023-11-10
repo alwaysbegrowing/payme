@@ -28,7 +28,7 @@ def currency_converter(my_dic, total, tax, tip, misc_fees, contribution, discoun
     All of the above, but with converted currency
     """
     # Get currency info
-    from apps import db_tool
+    import db_tool
 
     c = db_tool.getCurrency()
     df = c.df
@@ -236,7 +236,7 @@ def venmo_calc(
         request_money = {}
         for key in request.keys():
             request_money[key] = [round(request[key], 2)]
-        from apps import manual_mode as mm
+        import manual_mode as mm
 
         # get dictionary of name:message
         # gather variables for **kwarg

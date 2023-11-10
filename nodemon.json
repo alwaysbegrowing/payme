@@ -1,0 +1,5 @@
+{
+  "watch": ["/home/projects/payme/apps", "/home/projects/payme/payme"],
+  "ext": "py,sh",
+  "exec": "bash /home/projects/payme/start.sh"
+}

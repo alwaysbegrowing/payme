@@ -4,8 +4,8 @@
 import streamlit as st
 
 # files
-from apps import calculator as calc
-from apps import manual_mode as mm
+import calculator as calc
+import manual_mode as mm
 
 hide_streamlit_style = """
 <style>
@@ -66,13 +66,13 @@ def start():
             calc_message = {"request_money": None}
             st.stop()
     elif action == "Claim meals":
-        from apps import food_select as fs
+        import food_select as fs
 
         st.title("Claim your Meal!")
         st.write("Let everyone know what you ordered and/or shared.")
         sf = fs.labelFood()
     else:
-        from apps import food_select as fs
+        import food_select as fs
 
         st.title("Complex Receipt Receiver")
         st.write("For when receipts are too complex to sort who got what")
@@ -160,11 +160,11 @@ def delivery_brain():
         )  # the name finder is located in manual_mode.py file
         service_chosen = service_chosen.lower()
         if "door" in service_chosen:
-            from apps import doordash as dd
+            import doordash as dd
 
             user_output = dd.app(receipt, my_names, description)
         elif "uber" in service_chosen:
-            from apps import ubereats as ue
+            import ubereats as ue
 
             user_output = ue.app(receipt, my_names, description)
         return user_output

@@ -1,5 +1,5 @@
 #!/bin/bash
-source $HOME/miniconda3/bin/activate
+source "$HOME"/miniconda3/bin/activate
 
 echo "What would you like to do?"
 echo "[1] Install payme"

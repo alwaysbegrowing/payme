@@ -26,7 +26,7 @@ def name_finder(receipt):
     """
     import re
 
-    from apps import db_tool as db
+    import db_tool as db
 
     all_names = db.name_loader()
     receipt = receipt.replace(",", " ").lower()
